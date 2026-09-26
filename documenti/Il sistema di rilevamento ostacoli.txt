@@ -1,0 +1,5 @@
+Il sistema di rilevamento ostacoli per la sicurezza ferroviaria si basa su un'architettura ibrida che combina YOLO per l'object detection in tempo reale e SAM 2 (Segment Anything Model 2) per la segmentazione avanzata. Il modello è stato addestrato su un dataset multimodale composto da immagini RGB e rilevazioni termiche, garantendo affidabilità sia di giorno che in condizioni di scarsa visibilità notturna.
+
+Durante la fase di addestramento della rete neurale, è emerso un elevato tasso di falsi positivi causato dalla massicciata ferroviaria: la ghiaia ai bordi dei binari veniva erroneamente classificata come parte del tracciato o come ostacolo. Per mitigare questo problema, è stato implementato un sistema di pesi spaziali (spatial weighting).
+
+La matrice dei pesi applica una penalità severa agli errori di predizione concentrati al centro della carreggiata ferroviaria, riducendo drasticamente il peso degli errori sui bordi esterni. In questo modo, la loss function guida la rete a ignorare la conformazione irregolare dei sassi della massicciata, concentrando la capacità computazionale sull'identificazione precisa dei binari e degli oggetti contigui.

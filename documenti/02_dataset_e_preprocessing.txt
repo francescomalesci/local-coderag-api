@@ -1,0 +1,22 @@
+TITOLO: Dataset, Preprocessing e Generazione Dati Sintetici
+
+COMPOSIZIONE DEI DATASET:
+
+1. Dataset Statico Base (RailVID):
+- Composto originariamente da 450 fotogrammi termici reali dell'ambiente ferroviario.
+- Per contrastare l'overfitting e garantire varianza statistica, il volume è stato quadruplicato tramite data augmentation geometrica e cromatica.
+- Utilizzato come contesto di sfondo per la segmentazione e l'innesto di ostacoli.
+
+2. Generazione Sintetica per Object Detection (YOLO):
+- Data la carenza di anomalie reali sul tracciato termico, è stata impiegata la tecnica Copy-Paste Augmentation.
+- Istanze ritagliate di ostacoli e detriti generici (provenienti dal dataset fosh_objects / FOA Objects) sono state sovrapposte artificialmente sugli sfondi statici di RailVID.
+- Questo ha permesso di creare un dataset bilanciato per l'individuazione di macro-ostacoli fisici sulla massicciata.
+
+3. Fine-Tuning Dinamico per Segmentazione (SAM 2):
+- Per adattare il modello SAM 2 alle riprese video dinamiche, è stato estratto un set di frame dall'unico video reale disponibile (ripreso da un convoglio in marcia OOD).
+- Le maschere della rotaia sono state annotate manualmente tramite lo strumento CVAT (Computer Vision Annotation Tool) ed impiegate per un fine-tuning specialistico.
+
+4. Dataset FLIR ADAS:
+- Raccolta di circa 10.000 fotogrammi termici reali focalizzati sull'individuazione di target antropomorfi e veicolari.
+- Classi target: person (classe 0) e car (classe 1).
+- Utilizzato per specializzare il detector sulle sagome umane e sui veicoli a motore.

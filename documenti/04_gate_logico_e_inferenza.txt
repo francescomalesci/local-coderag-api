@@ -1,0 +1,15 @@
+TITOLO: Algoritmo del Gate Logico Spaziale e Inferenza
+
+PRINCIPIO OPERATIVO:
+Un object detector standard non possiede consapevolezza topologica: individua ogni ostacolo nel frame indipendentemente dal suo posizionamento rispetto al corridoio di marcia. Il Gate Logico Spaziale integra l'output vettoriale di YOLO con la maschera raster di SAM 2 per eliminare i falsi allarmi.
+
+LOGICA DECISIONALE:
+1. YOLO estrae il bounding box dell'anomalia [x_min, y_min, x_max, y_max] con la relativa confidenza.
+2. Viene calcolato il punto di contatto con il terreno, corrispondente al punto mediano della base inferiore del bounding box: P = ((x_min + x_max) / 2, y_max).
+3. SAM 2 fornisce la maschera binaria M della rotaia (dove i pixel del binario hanno valore 1 e il resto 0).
+4. La funzione di gating verifica la condizione di inclusione M(P) == 1:
+   - STATO CRITICO: se il punto P ricade all'interno dell'area mascherata della rotaia, l'anomalia costituisce pericolo di collisione immediato e viene segnalata (colore rosso, etichetta CRITICO).
+   - STATO IGNORATO: se il punto P cade all'esterno dell'area mascherata, l'oggetto viene identificato ma scartato dalle logiche di sicurezza (colore giallo, etichetta Ignorato), sopprimendo falsi positivi su banchine o strade parallele.
+
+POST-PROCESSING E STABILIZZAZIONE:
+- La maschera dinamica della rotaia viene raffinata dalla funzione reconstruct_dynamic_lane, che applica fit polinomiale e memoria temporale multi-frame per prevenire discontinuità e compensare occlusioni passeggere o vibrazioni della motrice.

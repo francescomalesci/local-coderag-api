@@ -1,0 +1,16 @@
+TITOLO: Specifiche Hardware e Ambiente Software
+
+CONFIGURAZIONE HARDWARE:
+- Processore (CPU): AMD Ryzen 9 9950X3D
+- Scheda Grafica (GPU): NVIDIA GeForce RTX 3080 (10 GB VRAM GDDR6X)
+- Scheda Madre: MSI X870E Carbon WiFi
+- Memoria RAM: 64 GB DDR5 a 6000 MHz
+
+CONFIGURAZIONE SOFTWARE:
+- Sistema Operativo: Microsoft Windows 11
+- Linguaggio di Programmazione: Python 3.10 / 3.11
+- Framework Deep Learning: PyTorch (v2.0+) con supporto accelerazione CUDA 11.8 / cuDNN
+- Libreria Detection: Ultralytics (v8.0+ / v8.4+) per modelli YOLO
+- Segmentazione: Repository SAM 2 (Segment Anything Model 2)
+- Computer Vision & Math: OpenCV (v4.8+) per acquisizione flussi video, visualizzazione overlay e bounding box; NumPy per algebra lineare, calcolo vettoriale e fit polinomiale delle traiettorie
+- Strumenti di Annotazione: Computer Vision Annotation Tool (CVAT)

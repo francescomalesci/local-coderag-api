@@ -1,0 +1,12 @@
+TITOLO: Sistema di Visione Artificiale per la Sicurezza Ferroviaria
+
+OBIETTIVO DEL PROGETTO:
+Sviluppo di un'architettura end-to-end basata su deep learning per il monitoraggio real-time e il rilevamento automatico di ostacoli lungo l'infrastruttura ferroviaria, operando su sequenze di immagini all'infrarosso termico in regime Out-of-Distribution (OOD).
+
+PROBLEMA RISOLTO:
+I sensori ottici convenzionali (RGB) falliscono in condizioni critiche di visibilità (notte, nebbia fitta, precipitazioni intense o abbagliamenti solari). L'impiego di telecamere termiche risolve il problema della visibilità, ma introduce sfide computazionali complesse: assenza di pattern cromatici, forte rumore termico e un elevato tasso di falsi allarmi dovuti a elementi ai margini del tracciato (segnaletica, vegetazione, carcasse, veicoli su strade adiacenti).
+
+ARCHITETTURA GENERALE DEL SISTEMA:
+1. Object Detection: Rilevamento degli ostacoli e anomalie visive tramite una rete neurale convoluzionale single-shot (YOLO26s).
+2. Segmentazione Semantica Dinamica: Estrazione frame per frame dell'area occupata dai binari tramite il Foundation Model SAM 2 (Segment Anything Model 2).
+3. Gate Logico Spaziale: Decision engine algebrico che calcola l'intersezione tra le coordinate spaziali dei bounding box e la maschera binaria della rotaia, classificando gli alert in "CRITICO" o "Ignorato".

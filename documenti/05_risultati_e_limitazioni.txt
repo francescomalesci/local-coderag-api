@@ -1,0 +1,17 @@
+TITOLO: Analisi Risultati, Limitazioni Empiriche e Sviluppi Futuri
+
+VALIDAZIONE SU DATI STATICI (SUCCESSO):
+- Sui fotogrammi statici appartenenti alla medesima distribuzione di addestramento, il sistema raggiunge prestazioni eccellenti.
+- YOLO26s identifica costantemente gli ostacoli sintetici con livelli di confidenza fino a 0.90.
+- Il Gate Logico discrimina con precisione chirurgica le anomalie posizionate sulla rotaia (CRITICO) da quelle esterne (Ignorato).
+
+CRITICITÀ SUL VIDEO DINAMICO OOD (DOMAIN SHIFT):
+- Testato sull'unico flusso video termico continuo ripreso da un convoglio in marcia (scenario totalmente Out-of-Distribution), il detector YOLO26s evidenzia limiti tangibili.
+- Emergono frequenti falsi negativi (ostacoli mancati) e fenomeni di flickering (instabilità e scomparsa intermittente dei bounding box tra frame sequenziali).
+- Causa: forte divario di dominio (Domain Shift) tra immagini statiche con Copy-Paste sintetico e riprese reali caratterizzate da vibrazioni, motion blur e continue variazioni di scala prospettica.
+- Comportamento asimmetrico: SAM 2 mantiene una segmentazione coerente della rotaia grazie al fine-tuning dedicato con CVAT eseguito su fotogrammi del video stesso.
+
+SVILUPPI FUTURI:
+1. Addestramento Dinamico Reale: annotazione massiva di sequenze video continue registrate da rotabili operativi, per addestrare YOLO direttamente sul motion blur ferroviario.
+2. Integrazione Flir ADAS: inserimento di 10k immagini termiche nel training loop per garantire robustezza specifica sul rilevamento di persone e veicoli.
+3. Transizione a SAM 3 e Moduli Adapter: migrazione verso la terza generazione del modello SAM integrando i moduli SAM-Adapter, consentendo l'adattamento rapido a contesti termici senza incorrere in catastrophic forgetting dei pesi originari.

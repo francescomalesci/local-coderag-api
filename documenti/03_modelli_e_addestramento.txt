@@ -1,0 +1,17 @@
+TITOLO: Modelli Utilizzati e Strategie di Addestramento
+
+SELEZIONE ARCHITETTURA YOLO (SMALL VS MEDIUM):
+- Esperimenti comparativi hanno dimostrato che il modello Medium va incontro a grave overfitting sui dati termici OOD: la rete memorizza il rumore del sensore e i gradienti termici di sfondo, portando al crollo della Recall e all'incapacità di rilevare target in validazione.
+- È stato adottato il modello YOLO26s (Small, ~11 milioni di parametri): la capacità parametrica ridotta funge da regolarizzatore implicito, costringendo i filtri convoluzionali ad astrarre solo i profili geometrici invarianti degli ostacoli.
+- Il modello Small garantisce un throughput computazionale elevato (alti FPS), fondamentale per l'elaborazione real-time su hardware embedded.
+
+CONFIGURAZIONE IPERPARAMETRI "DOPPIO_OOD":
+Per forzare la generalizzazione sul rumore termico senza convergenza prematura:
+- Mosaic (1.0) e Mixup (0.1): distruggono i pattern di contesto spaziale, fondendo fino a quattro frame nel medesimo tensore di input.
+- Scale (0.5) ed Erasing (0.4): simulano occlusioni parziali e target a distanze prospettiche differenti.
+- RandAugment: applica trasformazioni cromatiche stocastiche in memoria a ogni epoca.
+- Close Mosaic (10 epoche): la disattivazione del filtro Mosaic nelle ultime 10 epoche di training consente ai gradienti di stabilizzarsi su immagini topologicamente coerenti, azzerando le oscillazioni della loss e portando le metriche a saturazione ottimale (Recall > 0.90, mAP@50 ~ 0.95).
+
+SEGMENTAZIONE CON SAM 2:
+- Utilizzo del Foundation Model SAM 2 specializzato sul dominio infrarosso per isolare l'area di transito della rotaia.
+- Adattamento mirato ai gradienti termici tramite fine-tuning supervisionato con maschere CVAT.
