@@ -6,11 +6,24 @@ from dotenv import load_dotenv
 # Caricamento configurazione
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
-API_URL = "http://127.0.0.1:8000/chat"
 
 # Configurazione pagina
 st.set_page_config(page_title="Local CodeRAG", page_icon="🤖")
 st.title("Local CodeRAG")
+
+modalita = st.radio(
+    "Architettura di elaborazione:",
+    ("RAG Semplice (Veloce, solo database)", "Agente Intelligente (Lento, usa Tool esterni)"),
+    horizontal=True
+)
+
+# Impostiamo l'URL in base alla scelta dell'utente
+if "RAG Semplice" in modalita:
+    API_URL = "http://127.0.0.1:8000/chat"
+else:
+    API_URL = "http://127.0.0.1:8000/agent"
+
+st.divider()
 
 # Inizializzazione cronologia chat
 if "messages" not in st.session_state:

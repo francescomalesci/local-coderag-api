@@ -8,6 +8,7 @@ import logging
 import time
 import os
 import requests
+import urllib.parse
 import xml.etree.ElementTree as ET
 from dotenv import load_dotenv
 
@@ -52,9 +53,16 @@ def cerca_appunti_tesi(query: str) -> str:
 def cerca_arxiv(query: str) -> str:
     """Cerca articoli scientifici su arXiv. Usa questo strumento SOLO se l'utente chiede esplicitamente ricerche su paper, articoli scientifici o letteratura accademica generale."""
     logging.info(f"Esecuzione TOOL arXiv: ricerca di '{query}'")
-    url = f'http://export.arxiv.org/api/query?search_query=all:{query}&start=0&max_results=2'
+    
+    # FIX 1: URL-encoding per gestire spazi e caratteri speciali
+    query_codificata = urllib.parse.quote(query)
+    url = f'http://export.arxiv.org/api/query?search_query=all:{query_codificata}&start=0&max_results=2'
+    
     try:
-        response = requests.get(url)
+        # FIX 2: Aggiunto timeout=10 per evitare blocchi infiniti del server
+        response = requests.get(url, timeout=10)
+        response.raise_for_status() # Alza un'eccezione se lo status non è 200 OK
+        
         root = ET.fromstring(response.text)
         risultati = []
         for entry in root.findall('{http://www.w3.org/2005/Atom}entry'):
