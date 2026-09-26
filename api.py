@@ -6,6 +6,11 @@ import ollama
 from chromadb.utils import embedding_functions
 import logging
 import time
+import os
+from dotenv import load_dotenv
+
+# Carica le variabili dal file .env
+load_dotenv()
 
 # --- SETUP LOGGING ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -13,12 +18,13 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 app = FastAPI(title="Local CodeRAG API")
 
 # --- SETUP AUTENTICAZIONE ---
-API_KEY = "chiave-segreta-123"
+# Prende la chiave in modo sicuro dall'ambiente, non è più scritta nel codice!
+API_KEY = os.getenv("API_KEY") 
 api_key_header = APIKeyHeader(name="X-API-Key")
 
 def verifica_api_key(api_key: str = Security(api_key_header)):
-    if api_key != API_KEY:
-        logging.warning("Tentativo di accesso negato: API Key errata.")
+    if not API_KEY or api_key != API_KEY:
+        logging.warning("Tentativo di accesso negato: API Key errata o mancante.")
         raise HTTPException(status_code=403, detail="Accesso non autorizzato. API Key non valida.")
     return api_key
 
