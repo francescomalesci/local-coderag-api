@@ -1,9 +1,9 @@
 from pydantic import BaseModel
 
 class ChatRequest(BaseModel):
-    domanda: str
-    session_id: str = "utente_default"
+    question: str
+    session_id: str = "default_user"
 
 class IngestRequest(BaseModel):
-    testo: str
-    fonte: str = "api_upload"
+    text: str
+    source: str = "api_upload"

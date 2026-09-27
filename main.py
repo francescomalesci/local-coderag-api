@@ -43,7 +43,7 @@ def stream_ndjson(ollama_stream, source: str, start_time: float, messages: list 
             messages.append({'role': 'assistant', 'content': full_response})
         
         elapsed_time = round(time.time() - start_time, 2)
-        yield json.dumps({"type": "done", "fonte_utilizzata": source, "tempo_esecuzione_secondi": elapsed_time}) + "\n"
+        yield json.dumps({"type": "done", "source_used": source, "execution_time_seconds": elapsed_time}) + "\n"
     except Exception as e:
         logging.error(f"Streaming error: {e}")
         yield json.dumps({"type": "error", "content": str(e)}) + "\n"
@@ -73,16 +73,16 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]
 @app.post("/chat")
 async def chat_stream(req: ChatRequest, api_key: str = Depends(verify_api_key)):
     start_time = time.time()
-    results = collection.query(query_texts=[req.domanda], n_results=3)
+    results = collection.query(query_texts=[req.question], n_results=3)
     
     if not results['documents'][0]:
         def empty():
-            yield json.dumps({"type": "done", "fonte_utilizzata": "None", "tempo_esecuzione_secondi": 0.0}) + "\n"
+            yield json.dumps({"type": "done", "source_used": "None", "execution_time_seconds": 0.0}) + "\n"
         return StreamingResponse(empty(), media_type="application/x-ndjson")
     
     extracted_context = "\n---\n".join(results['documents'][0])
     unique_sources = ", ".join(set(meta['source'] for meta in results['metadatas'][0]))
-    prompt = f"You are a technical assistant. Use EXCLUSIVELY the provided context.\nCONTEXT:\n{extracted_context}\nQUESTION: {req.domanda}\nANSWER:"
+    prompt = f"You are a technical assistant. Use EXCLUSIVELY the provided context.\nCONTEXT:\n{extracted_context}\nQUESTION: {req.question}\nANSWER:"
     
     messages = [{'role': 'user', 'content': prompt}]
     
@@ -96,7 +96,7 @@ async def agent_stream(req: ChatRequest, api_key: str = Depends(verify_api_key))
     start_time = time.time()
     session = req.session_id
     messages = session_memory.setdefault(session, [])
-    messages.append({'role': 'user', 'content': req.domanda})
+    messages.append({'role': 'user', 'content': req.question})
     
     try:
         response = ollama.chat(model='qwen2.5:14b', messages=messages, tools=[search_thesis_notes, search_arxiv, save_note])
@@ -127,17 +127,17 @@ async def agent_stream(req: ChatRequest, api_key: str = Depends(verify_api_key))
         messages.append({'role': 'assistant', 'content': direct_response})
         def direct():
             yield json.dumps({"type": "token", "content": direct_response}) + "\n"
-            yield json.dumps({"type": "done", "fonte_utilizzata": used_tool, "tempo_esecuzione_secondi": round(time.time()-start_time,2)}) + "\n"
+            yield json.dumps({"type": "done", "source_used": used_tool, "execution_time_seconds": round(time.time()-start_time,2)}) + "\n"
         return StreamingResponse(direct(), media_type="application/x-ndjson")
 
 @app.post("/ingest")
 async def api_ingest(req: IngestRequest, api_key: str = Depends(verify_api_key)):
     try:
-        chunks = chunk_text(req.testo)
+        chunks = chunk_text(req.text)
         
         base_id = f"doc_{int(time.time())}"
         ids = [f"{base_id}_{i}" for i in range(len(chunks))]
-        metadatas = [{"source": req.fonte} for _ in chunks]
+        metadatas = [{"source": req.source} for _ in chunks]
         
         collection.upsert(
             documents=chunks,
@@ -147,7 +147,7 @@ async def api_ingest(req: IngestRequest, api_key: str = Depends(verify_api_key))
         return {
             "status": "success", 
             "message": f"Text successfully ingested. Created {len(chunks)} chunks.", 
-            "fonte": req.fonte
+            "source": req.source
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ingestion error: {str(e)}")

@@ -45,7 +45,8 @@ if prompt := st.chat_input("Ask a question about the documents..."):
 
     with st.chat_message("assistant"):
         headers = {"X-API-Key": API_KEY, "Content-Type": "application/json"}
-        payload = {"domanda": prompt, "session_id": "demo_session_1"}
+        # Cambiato 'domanda' in 'question'
+        payload = {"question": prompt, "session_id": "demo_session_1"}
         meta = {}
 
         def token_generator():
@@ -68,8 +69,9 @@ if prompt := st.chat_input("Ask a question about the documents..."):
         full_response = st.write_stream(token_generator())
 
         if meta:
-            meta_info = f"Source: {meta.get('fonte_utilizzata', '?')} | Time: {meta.get('tempo_esecuzione_secondi', '?')}s"
+            # Cambiate le chiavi estratte da meta.get()
+            meta_info = f"Source: {meta.get('source_used', '?')} | Time: {meta.get('execution_time_seconds', '?')}s"
             st.caption(meta_info)
             st.session_state.messages.append({"role": "assistant", "content": full_response, "meta": meta_info})
-        else:
+	else:
             st.session_state.messages.append({"role": "assistant", "content": full_response})
