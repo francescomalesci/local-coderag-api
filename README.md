@@ -1,163 +1,164 @@
 # Local CodeRAG
 
-Sistema RAG (Retrieval-Augmented Generation) e AI Agent completamente locale, costruito su appunti di tesi personali (segmentazione binari ferroviari con YOLO/SAM 2). Espone due modalità di interazione — RAG puro e Agente con tool esterni — tramite API REST, con streaming delle risposte e memoria conversazionale multi-turno.
+A fully local RAG (Retrieval-Augmented Generation) and AI Agent system, built on personal thesis notes (railway track segmentation with YOLO/SAM 2). It exposes two interaction modes — pure RAG and an Agent with external tools — through a REST API, with streaming responses and multi-turn conversational memory.
 
-Progetto sviluppato come portfolio tecnico per candidature Junior AI/LLM Engineer, con focus su architetture RAG, Vector Database, function calling e sistemi conversazionali.
+Built as a technical portfolio project for Junior AI/LLM Engineer applications, with a focus on RAG architectures, vector databases, function calling, and conversational systems.
 
-## Caratteristiche
+## Features
 
-- **RAG locale** su documenti personali (PDF, TXT), con chunking, embedding ed indicizzazione vettoriale
-- **Zero dipendenze cloud**: nessuna API key esterna a pagamento, LLM eseguiti interamente in locale via Ollama
-- **AI Agent con function calling**: instrada autonomamente le richieste tra ricerca nei documenti, ricerca su arXiv e salvataggio note
-- **API REST modulare** (FastAPI) con autenticazione via API key, streaming delle risposte (NDJSON) e memoria di sessione
-- **Frontend Streamlit** con selezione tra modalità RAG semplice e Agente
+* **Local RAG** over personal documents (PDF, TXT), with chunking, embedding, and vector indexing
+* **Zero cloud dependencies**: no paid external API keys, LLMs run entirely locally via Ollama
+* **AI Agent with function calling**: autonomously routes requests between document search, arXiv search, and note-saving
+* **Modular REST API** (FastAPI) with API key authentication, streaming responses (NDJSON), and session memory
+* **Streamlit frontend** with a toggle between Simple RAG and Agent mode
 
-## Architettura
+## Architecture
 
 ```mermaid
 flowchart TD
-    A[File utente: .pdf .txt] --> B[ingest.py: Chunking]
-    B --> C[database.py: Embedding - sentence-transformers]
-    C --> D[(ChromaDB - Vector Store locale)]
+    A\[User files: .pdf .txt] --> B\[ingest.py: Chunking]
+    B --> C\[database.py: Embedding - sentence-transformers]
+    C --> D\[(ChromaDB - Local Vector Store)]
 
-    U[Utente] --> F[app_frontend.py - Streamlit]
-    F -->|POST /chat o /agent| API[main.py - FastAPI]
+    U\[User] --> F\[app\_frontend.py - Streamlit]
+    F -->|POST /chat or /agent| API\[main.py - FastAPI]
 
-    API -->|modalita RAG| R[Retrieval semantico su ChromaDB]
+    API -->|RAG mode| R\[Semantic retrieval on ChromaDB]
     R --> D
-    R --> G7[Ollama - qwen2.5:7b]
-    G7 -->|stream NDJSON| F
+    R --> G7\[Ollama - qwen2.5:7b]
+    G7 -->|NDJSON stream| F
 
-    API -->|modalita Agent| AG[Ollama - qwen2.5:14b + Tool Calling]
-    AG -->|decide quale tool usare| T1[tools.py: search_thesis_notes]
-    AG --> T2[tools.py: search_arxiv]
-    AG --> T3[tools.py: save_note]
+    API -->|Agent mode| AG\[Ollama - qwen2.5:14b + Tool Calling]
+    AG -->|decides which tool to use| T1\[tools.py: search\_thesis\_notes]
+    AG --> T2\[tools.py: search\_arxiv]
+    AG --> T3\[tools.py: save\_note]
     T1 --> D
-    AG -->|sintesi finale, stream NDJSON| F
+    AG -->|final synthesis, NDJSON stream| F
 ```
 
-## Stack tecnologico
+## Tech Stack
 
-| Componente         | Tecnologia                                  |
-|---------------------|----------------------------------------------|
-| Linguaggio          | Python 3.10+                                 |
-| Vector Database     | ChromaDB (persistente, locale)               |
-| Embedding           | sentence-transformers (`all-MiniLM-L6-v2`)   |
-| LLM locale          | Ollama — `qwen2.5:7b` (RAG), `qwen2.5:14b` (Agent) |
-| Backend API         | FastAPI + Pydantic                           |
-| Frontend            | Streamlit                                    |
-| Estrazione PDF      | pypdf                                        |
-| Config              | python-dotenv                                |
+|Component|Technology|
+|-|-|
+|Language|Python 3.10+|
+|Vector Database|ChromaDB (persistent, local)|
+|Embeddings|sentence-transformers (`all-MiniLM-L6-v2`)|
+|Local LLM|Ollama — `qwen2.5:7b` (RAG), `qwen2.5:14b` (Agent)|
+|Backend API|FastAPI + Pydantic|
+|Frontend|Streamlit|
+|PDF extraction|pypdf|
+|Config|python-dotenv|
 
-## Requisiti hardware
+## Hardware Requirements
 
-Testato su GPU NVIDIA RTX 3080 (10/12 GB VRAM) + 64 GB RAM. `qwen2.5:7b` gira comodamente in VRAM; `qwen2.5:14b` quantizzato (Q4) è consigliato per GPU con VRAM limitata.
+Tested on an NVIDIA RTX 3080 (10/12 GB VRAM) + 64 GB RAM. `qwen2.5:7b` fits comfortably in VRAM; a quantized `qwen2.5:14b` (Q4) is recommended for GPUs with limited VRAM.
 
 ## Setup
 
-### 1. Ambiente Python
+### 1\. Python environment
 
 ```bash
 python -m venv venv
-source venv/bin/activate  # su Windows: venv\Scripts\activate
+source venv/bin/activate  # on Windows: venv\\Scripts\\activate
 pip install fastapi uvicorn chromadb sentence-transformers ollama pypdf python-dotenv streamlit requests
 ```
 
-### 2. Ollama e modelli
+### 2\. Ollama and models
 
-Installare [Ollama](https://ollama.com), poi scaricare i modelli:
+Install [Ollama](https://ollama.com), then pull the models:
 
 ```bash
 ollama pull qwen2.5:7b
 ollama pull qwen2.5:14b
 ```
 
-### 3. Variabili d'ambiente
+### 3\. Environment variables
 
-Creare un file `.env` nella root del progetto:
+Create a `.env` file in the project root:
 
 ```
-API_KEY=scegli-una-chiave-segreta
+API\_KEY=choose-a-secret-key
 ```
 
-### 4. Documenti da ingerire
+### 4\. Documents to ingest
 
-Creare la cartella `./documents` e inserire i file `.pdf` o `.txt` da indicizzare.
+Create the `./documents` folder and place the `.pdf` or `.txt` files you want indexed inside it.
 
-## Utilizzo
+## Usage
 
-**1. Ingestion iniziale** (popola il Vector Database da file):
+**1. Initial ingestion** (populates the vector database from files):
 
 ```bash
 python ingest.py
 ```
 
-**2. Avviare il backend API:**
+**2. Start the API backend:**
 
 ```bash
 uvicorn main:app --reload
 ```
 
-Documentazione interattiva disponibile su `http://127.0.0.1:8000/docs`.
+Interactive docs available at `http://127.0.0.1:8000/docs`.
 
-**3. Avviare il frontend:**
+**3. Start the frontend:**
 
 ```bash
-streamlit run app_frontend.py
+streamlit run app\_frontend.py
 ```
 
-## Endpoint API
+## API Endpoints
 
-Tutti gli endpoint richiedono l'header `X-API-Key`.
+All endpoints require the `X-API-Key` header.
 
-| Metodo | Endpoint  | Descrizione                                                        |
-|--------|-----------|---------------------------------------------------------------------|
-| POST   | `/chat`   | RAG puro: retrieval semantico + generazione con `qwen2.5:7b`, risposta in streaming NDJSON |
-| POST   | `/agent`  | Agente con tool calling (`qwen2.5:14b`), memoria di sessione, risposta in streaming NDJSON |
-| POST   | `/ingest` | Aggiunge un documento testuale al Vector Database via API (con chunking automatico) |
+|Method|Endpoint|Description|
+|-|-|-|
+|POST|`/chat`|Pure RAG: semantic retrieval + generation with `qwen2.5:7b`, NDJSON streaming response|
+|POST|`/agent`|Agent with tool calling (`qwen2.5:14b`), session memory, NDJSON streaming response|
+|POST|`/ingest`|Adds a text document to the vector database via the API (with automatic chunking)|
 
-**Esempio richiesta `/agent`:**
+**Example `/agent` request:**
 
 ```json
 {
-  "question": "Come ho gestito i falsi positivi sulla ghiaia nella segmentazione?",
-  "session_id": "demo_session_1"
+  "question": "How did I handle false positives from gravel in the segmentation?",
+  "session\_id": "demo\_session\_1"
 }
 ```
 
-**Formato risposta (streaming NDJSON)**, una riga JSON per evento:
+**Response format (NDJSON streaming)**, one JSON line per event:
 
 ```
-{"type": "token", "content": "Per gestire i falsi..."}
-{"type": "token", "content": " positivi sulla ghiaia..."}
-{"type": "done", "source_used": "Agent via: search_thesis_notes", "execution_time_seconds": 3.42}
+{"type": "token", "content": "To handle false positives..."}
+{"type": "token", "content": " from gravel..."}
+{"type": "done", "source\_used": "Agent via: search\_thesis\_notes", "execution\_time\_seconds": 3.42}
 ```
 
-## Esempi di query
+## Example Queries
 
-- *RAG semplice*: "Riassumi il meccanismo dei pesi spaziali usato in fase di training"
-- *Agente → tool RAG*: "Cosa ho scritto sulla segmentazione con SAM 2?"
-- *Agente → tool arXiv*: "Cerca paper recenti sulla segmentazione semantica di scene ferroviarie"
-- *Agente → tool azione*: "Salva un riassunto di questa conversazione in un file"
+* *Simple RAG*: "Summarize the spatial weighting mechanism used during training"
+* *Agent → RAG tool*: "What did I write about segmentation with SAM 2?"
+* *Agent → arXiv tool*: "Find recent papers on semantic segmentation of railway scenes"
+* *Agent → action tool*: "Save a summary of this conversation to a file"
 
-## Struttura del progetto
+## Project Structure
 
 ```
 .
-├── main.py               # FastAPI app: endpoint /chat, /agent, /ingest, streaming helpers
-├── database.py            # Setup ChromaDB, collection persistente, embedding model
+├── main.py               # FastAPI app: /chat, /agent, /ingest endpoints, streaming helpers
+├── database.py            # ChromaDB setup, persistent collection, embedding model
 ├── models.py                # Pydantic models (ChatRequest, IngestRequest)
-├── tools.py                   # Tool dell'agente: search_thesis_notes, search_arxiv, save_note
-├── ingest.py                 # Script di ingestion da file (PDF/TXT) con chunking
-├── app_frontend.py         # Interfaccia Streamlit
-├── documents/                # Cartella sorgente per i file da ingerire
-├── chroma_db/                 # Vector store persistente (generato automaticamente)
-└── .env                        # Variabili d'ambiente (non versionato)
+├── tools.py                   # Agent tools: search\_thesis\_notes, search\_arxiv, save\_note
+├── ingest.py                 # File ingestion script (PDF/TXT) with chunking
+├── app.py         # Streamlit interface
+├── documents/                # Source folder for files to ingest
+├── chroma\_db/                 # Persistent vector store (auto-generated)
+└── .env                        # Environment variables (not versioned)
 ```
 
-## Limitazioni note e sviluppi futuri
+## Known Limitations \& Future Work
 
-- La memoria conversazionale è mantenuta in RAM (`dict` Python) senza scadenza: adatto per demo, andrebbe sostituito con Redis o un database con TTL in un contesto di produzione
-- Nessun test automatico presente al momento
-- Il routing dell'agente su modelli locali di piccole dimensioni può occasionalmente essere impreciso nella scelta del tool; modelli più grandi (14B+) migliorano l'affidabilità a costo di maggiore latenza
-- Possibili estensioni: retrieval ibrido (BM25 + semantico), valutazione quantitativa del retrieval (precision/recall), supporto opzionale a provider LLM cloud dietro la stessa interfaccia
+* Conversational memory is kept in RAM (a plain Python `dict`) with no expiration: fine for a demo, but should be replaced with Redis or a TTL-backed store in a production context
+* No automated tests yet
+* Agent routing on small local models can occasionally be imprecise in tool selection; larger models (14B+) improve reliability at the cost of higher latency
+* Possible extensions: hybrid retrieval (BM25 + semantic), quantitative retrieval evaluation (precision/recall), optional support for cloud LLM providers behind the same interface
+
