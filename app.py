@@ -73,5 +73,5 @@ if prompt := st.chat_input("Ask a question about the documents..."):
             meta_info = f"Source: {meta.get('source_used', '?')} | Time: {meta.get('execution_time_seconds', '?')}s"
             st.caption(meta_info)
             st.session_state.messages.append({"role": "assistant", "content": full_response, "meta": meta_info})
-	else:
+        else:
             st.session_state.messages.append({"role": "assistant", "content": full_response})
