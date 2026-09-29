@@ -11,6 +11,7 @@ Built as a technical portfolio project for Junior AI/LLM Engineer applications, 
 * **AI Agent with function calling**: autonomously routes requests between document search, arXiv search, and note-saving
 * **Modular REST API** (FastAPI) with API key authentication, streaming responses (NDJSON), and session memory
 * **Streamlit frontend** with a toggle between Simple RAG and Agent mode
+* **One-click Desktop Launcher**: unified execution script for concurrent backend and UI startup
 
 ## Architecture
 
@@ -51,7 +52,10 @@ flowchart TD
 
 ## Hardware Requirements
 
-Tested on an NVIDIA RTX 3080 (10/12 GB VRAM) + 64 GB RAM. `qwen2.5:7b` fits comfortably in VRAM; a quantized `qwen2.5:14b` (Q4) is recommended for GPUs with limited VRAM.
+Tested on NVIDIA GPUs (RTX 3080 10GB / RTX 2060 6GB). 
+
+- **GPUs with 6 GB VRAM**: Recommended to stick with `qwen2.5:7b` (fits entirely in VRAM with context). Running `qwen2.5:14b` requires partial CPU/RAM offloading, which significantly degrades generation speed.
+- **GPUs with 10+ GB VRAM**: Can comfortably run `qwen2.5:14b` (Q4) entirely in VRAM for agentic workflows with low latency.
 
 ## Setup
 
@@ -60,7 +64,7 @@ Tested on an NVIDIA RTX 3080 (10/12 GB VRAM) + 64 GB RAM. `qwen2.5:7b` fits comf
 ```bash
 python -m venv venv
 source venv/bin/activate  # on Windows: venv\\Scripts\\activate
-pip install fastapi uvicorn chromadb sentence-transformers ollama pypdf python-dotenv streamlit requests
+pip install -r requirements.txt
 ```
 
 ### 2\. Ollama and models
@@ -85,6 +89,14 @@ API\_KEY=choose-a-secret-key
 Create the `./documents` folder and place the `.pdf` or `.txt` files you want indexed inside it.
 
 ## Usage
+
+**Fast Start (Unified)** (starts both API backend and Streamlit UI concurrently):
+
+```bash
+python launcher.py
+```
+
+## Manual Execution
 
 **1. Initial ingestion** (populates the vector database from files):
 
@@ -144,14 +156,16 @@ All endpoints require the `X-API-Key` header.
 
 ```
 .
-├── main.py               # FastAPI app: /chat, /agent, /ingest endpoints, streaming helpers
-├── database.py            # ChromaDB setup, persistent collection, embedding model
-├── models.py                # Pydantic models (ChatRequest, IngestRequest)
-├── tools.py                   # Agent tools: search\_thesis\_notes, search\_arxiv, save\_note
-├── ingest.py                 # File ingestion script (PDF/TXT) with chunking
-├── app.py         # Streamlit interface
-├── documents/                # Source folder for files to ingest
+├── main.py                     # FastAPI app: /chat, /agent, /ingest endpoints, streaming helpers
+├── database.py                 # ChromaDB setup, persistent collection, embedding model
+├── models.py                   # Pydantic models (ChatRequest, IngestRequest)
+├── tools.py                    # Agent tools: search\_thesis\_notes, search\_arxiv, save\_note
+├── ingest.py                   # File ingestion script (PDF/TXT) with chunking
+├── app.py                      # Streamlit interface
+├── launcher.py                 # Dual startup process script (Uvicorn + Streamlit)
+├── documents/                  # Source folder for files to ingest
 ├── chroma\_db/                 # Persistent vector store (auto-generated)
+├── requirements.txt            # Locked project dependencies
 └── .env                        # Environment variables (not versioned)
 ```
 
