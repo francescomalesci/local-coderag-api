@@ -1,12 +1,7 @@
-# Ambienti virtuali
 venv/
-
-# Database locale e vettori
-chroma_db/
-
-# File di cache di Python
 __pycache__/
-*.pyc
-
-# File di configurazione/sicurezza (es. API keys in futuro)
+build/
+chroma_db/
+*.exe
+*.spec
 .env
